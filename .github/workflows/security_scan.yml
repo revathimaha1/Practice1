@@ -20,23 +20,13 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          npm install -g @github/codeql-cli
+        run: pip install bandit codeql-action cyclonedx-bom
 
-      - name: CodeQL Analysis
-        run: |
-          codeql database create codeql-database --language=python --source-root . --command="python3 -m pip install -r requirements.txt && python3 manage.py migrate && python3 manage.py test"
-          codeql database analyze codeql-database --format=sarif-latest --output=codeql-results.sarif
+      - name: Run Bandit scan
+        run: bandit -r .
 
-      - name: Bandit Scan
-        run: bandit -r . -f json -o bandit-results.json
-
-      - name: Check for vulnerabilities
-        run: |
-          # Logic to check for vulnerabilities in Bandit and CodeQL results
-          # If Critical or above vulnerabilities found, block pull request with a comment
-          # Otherwise, auto-merge pull request with a comment
+      - name: Run CodeQL analysis
+        uses: github/codeql-action/analyze@v4
 
 
       - name: Fetching code scanning alerts
