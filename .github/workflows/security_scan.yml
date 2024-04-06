@@ -26,7 +26,7 @@ jobs:
         run: bandit -r .
 
       - name: Run CodeQL analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@v3
 
 
       - name: Fetching code scanning alerts
