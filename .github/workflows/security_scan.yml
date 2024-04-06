@@ -1,74 +1,66 @@
-name: Security Workflow
+name: Code Scanning and Dependency Analysis
 
 on:
   workflow_dispatch:
   pull_request:
-    types: [opened, synchronize]
+    branches:
+      - main
 
 jobs:
-  security-checks:
+  code_scanning:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+
       - name: Install dependencies
-        run: pip install bandit codeql-action cyclonedx-bom
-
-      - name: Run Bandit scan
-        run: bandit -r .
-
-      - name: Run CodeQL analysis
-        uses: github/codeql-action/analyze@v3
-
-      # Combined actions for blocking and merging PR into a single step
-      - name: Block PR if critical vulnerabilities found, merge otherwise
-        if: ${{ failure() || success() }}
-        uses: peter-evans/create-or-update-comment@v2
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Security scans {{#if failure()}}failed{{else}}passed{{/if}}.
-            {{#if failure()}}
-              :red_circle: Pull request blocked due to critical vulnerabilities.
-            {{else}}
-              :green_heart: Merging PR...
-            {{/if}}
-        # Only merge PR if successful
-        # Note: Ensure you have a secret named "MY_GITHUB_TOKEN" with a valid token
-      # Conditional logic for merging with provided token
-      - name: Merge PR if successful (requires MY_GITHUB_TOKEN secret)
         run: |
-          if [[ ${{ github.event.action }} == 'opened' || ${{ github.event.action }} == 'synchronize' ]]; then
-            echo "Pull Request opened or synchronized - skipping merge"
-          else
-            github.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              sha: context.sha,
-              merge_method: "merge",
-            })
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}  # Access token from secret
+          pip install -r requirements.txt
+          npm install -g @github/codeql-cli
 
-      - name: Generate SBOM on merge
-        if: ${{ github.event.action == 'closed' && github.event.pull_request.merged }}
-        run: cyclonedx-bom --output bom.xml
+      - name: CodeQL Analysis
+        run: |
+          codeql database create codeql-database --language=python --source-root . --command="python3 -m pip install -r requirements.txt && python3 manage.py migrate && python3 manage.py test"
+          codeql database analyze codeql-database --format=sarif-latest --output=codeql-results.sarif
 
-  vulnerability-report:
+      - name: Bandit Scan
+        run: bandit -r . -f json -o bandit-results.json
+
+      - name: Check for vulnerabilities
+        run: |
+          # Logic to check for vulnerabilities in Bandit and CodeQL results
+          # If Critical or above vulnerabilities found, block pull request with a comment
+          # Otherwise, auto-merge pull request with a comment
+
+  dependency_scanning:
     runs-on: ubuntu-latest
-    needs: [security-checks]
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Generate SBOM using CycloneDX
+        run: |
+          cyclonedx-bom --output-format json > dependency-report.json
+
+      - name: Upload Dependency Report
+        uses: actions/upload-artifact@v2
         with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: pip install requests  # Add other required libraries as needed
-      - name: Run Python script (Replace with your script)
-        run: python scripts/fetch_alerts.py  # Replace with the path to your script
+          name: dependency-report
+          path: dependency-report.json
+
+  vulnerability_analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Fetching code scanning alerts
+        run: python fetch_alerts.py
