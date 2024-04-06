@@ -82,7 +82,9 @@ run\: echo "</span>{{ needs.security_scan.result }}"
         with:
           context: security scan
           message: 'Block'  # Customize block message
-
+      - name: Fetch security alerts
+        run: python scripts/fetch_alerts.py ${{ secrets.MY_GITHUB_TOKEN }}  # Access token from GitHub Secrets
+        # ... other configurations for the step (optional)
 strategy:
   # Define languages to analyze with CodeQL (adjust as needed)
   matrix:
