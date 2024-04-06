@@ -44,6 +44,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        
+      - name: Install CycloneDX CLI
+        run: |
+        curl -sSL https://github.com/CycloneDX/cyclonedx-cli/releases/latest/download/install.sh | sh
 
       - name: Generate SBOM using CycloneDX
         run: |
