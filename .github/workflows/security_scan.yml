@@ -63,4 +63,4 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Fetching code scanning alerts
-        run: python fetch_alerts.py
+        run: python scripts/fetch_alerts.py
