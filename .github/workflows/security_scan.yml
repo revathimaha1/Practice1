@@ -11,22 +11,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v3
+      - name: Set up CodeQL
+        uses: github/codeql-action/init@v4
         with:
-          python-version: '3.x'
+          languages: python  # Replace with languages you want to analyze (e.g., javascript)
 
       - name: Install dependencies
-        run: pip install bandit codeql-action cyclonedx-bom
+        run: |
+          python -m pip install bandit  # Optional: Install additional analysis tools
 
-      - name: Run Bandit scan
-        run: bandit -r .
-
-      - name: Run CodeQL analysis
-        uses: github/codeql-action/analyze@v3
+      - name: Analyze
+        uses: github/codeql-action/analyze@v4
+          with:
+            # Optional: Path to queries directory (defaults to ./queries)
+            # Optional: Additional analysis options (refer to CodeQL documentation)
 
 
       - name: Fetching code scanning alerts
