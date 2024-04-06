@@ -50,7 +50,7 @@ jobs:
           pip install cyclonedx-bom
 
       - name: Set path for cyclonedx-bom (Optional)
-        run: echo "##vso[task.setvariable variable=PATH;]$(python -m site --user-base)/bin:$PATH"
+        run: echo $PATH
 
       - name: Generate SBOM using CycloneDX
         run: |
