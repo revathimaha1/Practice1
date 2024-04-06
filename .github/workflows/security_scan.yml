@@ -23,18 +23,19 @@ jobs:
       - name: Run CodeQL analysis
         uses: github/codeql-action/analyze@v4
 
-      # Combine actions for blocking and merging PR into a single step
+      # Combined actions for blocking and merging PR into a single step
       - name: Block PR if critical vulnerabilities found, merge otherwise
         if: ${{ failure() || success() }}
         uses: peter-evans/create-or-update-comment@v2
         with:
           issue-number: ${{ github.event.number }}
           body: |
-            ${{#if failure()}}
-              :red_circle: Security scans failed. Pull request blocked due to critical vulnerabilities.
-            ${{else}}
-              :green_heart: Security scans passed successfully! Merging PR...
-            ${{/if}}
+            Security scans {{#if failure()}}failed{{else}}passed{{/if}}.
+            {{#if failure()}}
+              :red_circle: Pull request blocked due to critical vulnerabilities.
+            {{else}}
+              :green_heart: Merging PR...
+            {{/if}}
         # Only merge PR if successful
         # Note: Ensure you have a secret named "MY_GITHUB_TOKEN" with a valid token
         if: ${{ success() }}
@@ -65,5 +66,5 @@ jobs:
           python-version: '3.x'
       - name: Install dependencies
         run: pip install requests  # Add other required libraries as needed
-      - name: Run Python script
-        run: python scripts/fetch_alerts.py  # Replace with your script's name
+      - name: Run Python script (Replace with your script)
+        run: python scripts/fetch_alerts.py  # Replace with the path to your script
