@@ -25,8 +25,14 @@ jobs:
       - name: Run Bandit scan
         run: bandit -r .
 
-    #  - name: Run CodeQL analysis
-        #uses: github/codeql-action/analyze@v3
+          # Initializes CodeQL tools and creates a codebase for analysis.
+      - name: Initialize CodeQL
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
 
           # Combined actions for blocking and merging PR into a single step
       - name: Block PR if critical vulnerabilities found, merge otherwise
