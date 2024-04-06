@@ -1,0 +1,89 @@
+name: Security Scan, SBOM, and Auto-Merge
+
+on:
+  pull_request:  # Run on pull request events
+
+jobs:
+  # Combined security scan with Bandit and CodeQL
+  security_scan:
+    runs-on: ubuntu-latest  # You can choose a different runner
+
+    steps:
+      - uses: actions/checkout@v3  # Checkout the repository code
+
+      # Bandit code scan (Python)
+      - name: Run Bandit
+        uses: actions/bandit@v3
+        if: github.event.pull_request.files.ends_with('.py')  # Only run on Python files
+        with:
+          scan-path: vulpy_master/  # Adjust the path to your code
+
+      # CodeQL analysis
+      - name: Install CodeQL
+        uses: github/codeql-action@v2
+        with:
+          languages: ${{ matrix.language }}  # Define languages in the strategy matrix
+
+      - name: Run CodeQL queries
+        uses: github/codeql-action@v2
+        with:
+          queries: ./queries/*.ql  # Path to your CodeQL query files (adjust as needed)
+          analyze: <span class="math-inline">\{\{ matrix\.language \}\}  \# Analyze based on the language matrix
+\# Analyze results \(generic approach\)
+\- name\: Check for critical vulnerabilities
+run\: \|
+\# Implement logic to parse Bandit/CodeQL output and identify critical vulnerabilities \(replace with your actual logic\)
+if grep \-q "Critical" output\.txt; then
+echo "Critical vulnerabilities found\!"
+exit 1
+fi
+\# SBOM and dependency scanning \(on merge\)
+sbom\_and\_dependency\_scan\:
+runs\-on\: ubuntu\-latest  \# You can choose a different runner
+needs\: security\_scan  \# Wait for security scan to complete
+steps\:
+\- uses\: actions/checkout@v3  \# Checkout the repository code \(again\)
+\- name\: Install SBOM and dependency scanning tool \(replace with your chosen tool\)
+\# Replace with the specific command to install your chosen SBOM/dependency scanning tool
+run\: \|
+\# Example\: install CycloneDX SBOM tool
+curl \-sfL https\://raw\.githubusercontent\.com/CycloneDX/cyclonedx\-gomod/master/install\.sh \| sh
+\- name\: Generate SBOM
+\# Replace with the specific command to generate SBOM using your chosen tool
+run\: \|
+\# Example\: generate CycloneDX SBOM
+cyclonedx\-gomod \-format cyclonedx \> sbom\.xml
+\- name\: Upload SBOM as artifact \(optional\)
+uses\: actions/upload\-artifact@v3
+with\:
+name\: sbom
+path\: sbom\.xml  \# Adjust path based on your SBOM file name
+\- name\: Run dependency scanning \(replace with your chosen tool\)
+\# Replace with the specific command to run dependency scanning using your chosen tool
+\- name\: Upload dependency scan results \(optional\)
+\# Add steps to upload dependency scan results as artifacts \(similar to SBOM\)
+\# Auto\-merge with comments based on security scan results
+auto\_merge\:
+needs\: security\_scan  \# Wait for security scan to complete
+runs\-on\: ubuntu\-latest  \# You can choose a different runner
+steps\:
+\- uses\: actions/checkout@v3  \# Checkout the repository code \(again\)
+\- name\: Check workflow conclusions
+run\: echo "</span>{{ needs.security_scan.result }}"
+      - name: Merge pull request if successful
+        uses: dawido/commit-status-action@v1  # Replace with your preferred auto-merge action
+        with:
+          context: security scan
+          message: 'Successful'  # Customize success message
+          state: ${{ needs.security_scan.result == 'success' ? 'success' : 'failure' }}
+      - name: Block pull request if critical vulnerabilities found
+        uses: dawido/commit-status-action@v1  # Replace with your preferred blocking action
+        if: needs.security_scan.result == 'failure'
+        with:
+          context: security scan
+          message: 'Block'  # Customize block message
+
+strategy:
+  # Define languages to analyze with CodeQL (adjust as needed)
+  matrix:
+    language: [ javascript
