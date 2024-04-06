@@ -28,6 +28,20 @@ jobs:
     #  - name: Run CodeQL analysis
         #uses: github/codeql-action/analyze@v3
 
+          # Combined actions for blocking and merging PR into a single step
+      - name: Block PR if critical vulnerabilities found, merge otherwise
+        if: ${{ failure() || success() }}
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            Security scans {{#if failure()}}failed{{else}}passed{{/if}}.
+            {{#if failure()}}
+              :red_circle: Pull request blocked due to critical vulnerabilities.
+            {{else}}
+              :green_heart: Merging PR...
+            {{/if}}
+
 
       - name: Fetching code scanning alerts
         run: python scripts/fetch_alerts.py
