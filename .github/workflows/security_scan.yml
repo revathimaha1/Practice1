@@ -47,7 +47,7 @@ jobs:
         
       - name: Install CycloneDX CLI
         run: |
-        curl -sSL https://github.com/CycloneDX/cyclonedx-cli/releases/latest/download/install.sh | sh
+          pip install cyclonedx-bom
 
       - name: Generate SBOM using CycloneDX
         run: |
