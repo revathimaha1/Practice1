@@ -20,7 +20,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: pip install bandit codeql-action cyclonedx-bom
+        run: pip install bandit
 
       - name: Run Bandit scan
         run: bandit -r .
