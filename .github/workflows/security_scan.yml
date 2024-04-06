@@ -38,36 +38,6 @@ jobs:
           # If Critical or above vulnerabilities found, block pull request with a comment
           # Otherwise, auto-merge pull request with a comment
 
-  dependency_scanning:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        
-      - name: Install CycloneDX CLI
-        run: |
-          pip install cyclonedx-bom
-
-      - name: Set path for cyclonedx-bom (Optional)
-        run: echo $PATH
-
-      - name: Generate SBOM using CycloneDX
-        run: |
-          cyclonedx-bom --output-format json > dependency-report.json
-
-      - name: Upload Dependency Report
-        uses: actions/upload-artifact@v2
-        with:
-          name: dependency-report
-          path: dependency-report.json
-
-  vulnerability_analysis:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
 
       - name: Fetching code scanning alerts
         run: python scripts/fetch_alerts.py
