@@ -39,17 +39,16 @@ jobs:
         # Only merge PR if successful
         # Note: Ensure you have a secret named "MY_GITHUB_TOKEN" with a valid token
         if: ${{ success() }}
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.MY_GITHUB_TOKEN }}
-          script: |
-            github.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              sha: context.sha,
-              merge_method: "merge",
-            })
+          with:  # Use "with" to provide input for the conditional step
+            github-token: ${{ secrets.MY_GITHUB_TOKEN }}
+            script: |
+              github.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                sha: context.sha,
+                merge_method: "merge",
+              })
 
       - name: Generate SBOM on merge
         if: ${{ github.event.action == 'closed' && github.event.pull_request.merged }}
