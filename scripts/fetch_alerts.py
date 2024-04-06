@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 from packaging import secrets
 # Replace with your actual personal access token
-github_token = secrets.environ_get("GITHUB_TOKEN")
+github_token = secrets.environ_get("MY_GITHUB_TOKEN")
 
 
 
