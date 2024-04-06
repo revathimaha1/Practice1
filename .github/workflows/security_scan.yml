@@ -38,17 +38,22 @@ jobs:
             {{/if}}
         # Only merge PR if successful
         # Note: Ensure you have a secret named "MY_GITHUB_TOKEN" with a valid token
-        if: ${{ success() }}
-        with:  # Use "with" to provide input for the conditional step
-            github-token: ${{ secrets.MY_GITHUB_TOKEN }}
-            script: |
-              github.pulls.merge({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.payload.pull_request.number,
-                sha: context.sha,
-                merge_method: "merge",
-              })
+      # Conditional logic for merging with provided token
+      - name: Merge PR if successful (requires MY_GITHUB_TOKEN secret)
+        run: |
+          if [[ ${{ github.event.action }} == 'opened' || ${{ github.event.action }} == 'synchronize' ]]; then
+            echo "Pull Request opened or synchronized - skipping merge"
+          else
+            github.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              sha: context.sha,
+              merge_method: "merge",
+            })
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}  # Access token from secret
 
       - name: Generate SBOM on merge
         if: ${{ github.event.action == 'closed' && github.event.pull_request.merged }}
