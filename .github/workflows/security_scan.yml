@@ -31,7 +31,7 @@ jobs:
           # Combined actions for blocking and merging PR into a single step
       - name: Block PR if critical vulnerabilities found, merge otherwise
         if: ${{ failure() || success() }}
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.number }}
           body: |
