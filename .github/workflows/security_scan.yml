@@ -30,11 +30,11 @@ jobs:
         with:
           issue-number: ${{ github.event.number }}
           body: |
-            ${{ if (failure()) }}
+            ${{#if failure()}}
               :red_circle: Security scans failed. Pull request blocked due to critical vulnerabilities.
-            ${{ else }}
+            ${{else}}
               :green_heart: Security scans passed successfully! Merging PR...
-            ${{ endif }}
+            ${{/if}}
         # Only merge PR if successful
         # Note: Ensure you have a secret named "MY_GITHUB_TOKEN" with a valid token
         if: ${{ success() }}
@@ -64,6 +64,6 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install dependencies
-        run: pip install requests # Add any other required libraries
+        run: pip install requests  # Add other required libraries as needed
       - name: Run Python script
         run: python scripts/fetch_alerts.py  # Replace with your script's name
