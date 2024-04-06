@@ -39,7 +39,7 @@ jobs:
         # Only merge PR if successful
         # Note: Ensure you have a secret named "MY_GITHUB_TOKEN" with a valid token
         if: ${{ success() }}
-          with:  # Use "with" to provide input for the conditional step
+        with:  # Use "with" to provide input for the conditional step
             github-token: ${{ secrets.MY_GITHUB_TOKEN }}
             script: |
               github.pulls.merge({
